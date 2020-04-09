@@ -1,56 +1,46 @@
 from config import config
-from elk_bot_main import services
+
 from datetime import datetime
+import pygsheets
 
 
-def get_work_sheet(sheet, sheet_title):
-    """
+class GoogleSheetsHandler:
+    def __init__(self):
+        self.gsh_conn = pygsheets.authorize(service_file='client_secret.json')
+        self.events_sheet = self.gsh_conn.open(config.sheet_name).worksheet_by_title(config.events_sheet_title)
+        self.groups_sheet = self.gsh_conn.open(config.sheet_name).worksheet_by_title(config.group_sheet_title)
 
-    :param sheet:
-    :param sheet_title:
-    :return:
-    """
-    return services.gsheets.open(sheet).worksheet_by_title(sheet_title)
+    def delete_event(self, index):
+        """
 
+        :param index:
+        :return:
+        """
+        self.events_sheet.delete_rows(index=index, number=1)
 
-def delete_record(work_sheet, index):
-    """
+    def get_prepared_messages(self):
+        """
 
-    :param work_sheet:
-    :param index:
-    :return:
-    """
-    work_sheet.delete_rows(index=index, number=1)
+        :return:
+        """
+        now = datetime.now()
+        records = self.events_sheet.get_all_records()
+        suitable_records = dict()
+        for record in records:
+            if record['message_datetime']:
+                if datetime.strptime(record['message_datetime'], config.event_datetime_format) < now:
+                    suitable_records[record['message_text']] = records.index(record) + 2
+        return suitable_records
 
+    def get_chat_list(self):
+        return [record['group_id'] for record in self.groups_sheet.get_all_records()]
 
-def get_prepared_messages():
-    """
-
-    :return:
-    """
-    now = datetime.now()
-    wsh = get_work_sheet(config.sheet_name, config.events_sheet_title)
-    records = wsh.get_all_records()
-    suitable_records = []
-    for record in records:
-        if record['message_datetime']:
-            if datetime.strptime(record['message_datetime'], config.event_datetime_format) < now:
-                suitable_records.append(record)
-    return suitable_records
-
-
-def get_chat_list():
-    wsh = get_work_sheet(config.sheet_name, config.group_sheet_title)
-    return [record['group_id'] for record in wsh.get_all_records()]
-
-
-def set_group(group_name, group_id):
-    wsh = get_work_sheet(config.sheet_name, config.group_sheet_title)
-    chats_amount = len(get_chat_list())
-    wsh.append_table([group_name, group_id], start='A' + str(chats_amount) if chats_amount else 'A2')
+    def set_group(self, group_name, group_id):
+        chats_amount = len(self.get_chat_list())
+        self.groups_sheet.append_table([group_name, group_id], start='A' + str(chats_amount) if chats_amount else 'A2')
 
 
 if __name__ == '__main__':
-    set_group('Какая-то группа', 123)
+    pass
 
 

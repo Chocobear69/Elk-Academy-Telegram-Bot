@@ -1,7 +1,7 @@
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
-from elk_bot_db_manager import Messages, Customers
+from elk_bot_db_manager import *
 from config import config
 
 
@@ -19,6 +19,19 @@ class DataBaseHandler:
             session.add(message)
             session.commit()
             #session.refresh(message)
+
+        finally:
+            session.close()
+
+    def set_group(self, message):
+        session = self.sesh()
+        try:
+            group = Groups(message.chat.id, message.text)
+            session.add(group)
+            session.commit()
+            return 1
+        except Exception as e:
+            return 0
         finally:
             session.close()
 
@@ -29,12 +42,33 @@ class DataBaseHandler:
                                  message.from_user.username)
             session.add(customer)
             session.commit()
+            return 1
+        except Exception as e:
+            return 0
         finally:
             session.close()
 
-    def get_message_by_id(self, message_id):
+    def delete_group(self, message):
         session = self.sesh()
         try:
-            return session.query(Messages).filter(Messages.message_id == message_id).first().body
+            Groups.query.filter(Groups.group_id == message).delete()
+            session.commit()
+        finally:
+            session.close()
+
+    def get_messages_by_date(self, date):
+        now = date.today()
+        session = self.sesh()
+        try:
+            return session.query(Messages).filter(db.func.date(Messages.dttm) == now)
+        finally:
+            session.close()
+
+    def set_message_to_send(self, group_id, message):
+        session = self.sesh()
+        try:
+            message = MessagesToSend(group_id, message)
+            session.add(message)
+            session.commit()
         finally:
             session.close()

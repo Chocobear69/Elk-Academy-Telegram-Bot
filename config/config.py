@@ -8,11 +8,12 @@ admins_sheet_title = 'admins'
 
 """Data base connection"""
 pg_conn = 'postgresql+psycopg2://postgres:2wsxCDE#@192.168.1.31/elk_academy'
+pg_conn_manual = 'dbname=elk_academy user=postgres password=2wsxCDE#'
 #db_conn = 'sqlite:///sqlite3.db'
 
 """Schedule"""
 datetime_format = '%d/%m/%Y %H:%M'
-scheduler_interval_min = 1
+scheduler_interval_min = 10
 
 info_chat_id = ''
 info_message_template = 'MESSAGE ID:\n' \

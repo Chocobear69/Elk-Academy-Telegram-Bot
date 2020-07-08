@@ -21,10 +21,10 @@ groups = gsheets.get_groups()
 @bot.message_handler(commands=['start'])
 def init(message):
     if message.chat.id < 0 and message.from_user.id in admins:
+        bot.send_message(message.chat.id, config.first_message)
         markup = types.ForceReply(selective=False)
         msg = bot.send_message(message.chat.id, 'What is this group tag?', reply_markup=markup)
         bot.register_for_reply(msg, add_group, user_id=message.from_user.id, chat_id=message.chat.id)
-        bot.send_message(message.chat.id, config.first_message)
 
 
 def add_group(message, user_id, chat_id):
@@ -102,10 +102,20 @@ def update_admins_groups():
     admins = gsheets.get_admins()
 
 
+def check_messages_to_send():
+    messages_to_send = db_handler.get_messages_to_send()
+    for i in messages_to_send:
+        try:
+            bot.send_message(i.group_id, i.message_body)
+            db_handler.delete_message_to_send(i.message_id)
+        except Exception as e:
+            logger.log('Error while daily report:' + str(e))
+
 
 def main():
     scheduler.start()
     scheduler.add_job(func=update_admins_groups, trigger='interval', minutes=config.scheduler_interval_min)
+    scheduler.add_job(func=check_messages_to_send, trigger='cron', hour='21', minute='34')
 
     while True:
         try:

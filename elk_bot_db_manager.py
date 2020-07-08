@@ -34,8 +34,9 @@ class Customers(Base):
     last_name = Column(String)
     customer_nickname = Column(String)
 
-    def __init__(self, customer_id, first_name, last_name, nickname):
+    def __init__(self, customer_id, group_id, first_name, last_name, nickname):
         self.customer_id = customer_id
+        self.group_id = group_id
         self.first_name = first_name
         self.last_name = last_name
         self.customer_nickname = nickname
@@ -52,14 +53,16 @@ class Groups(Base):
     def __init__(self, group_id, group_tag):
         self.group_id = group_id
         self.group_tag = group_tag
+        self.active_flag = True
 
 
 class MessagesToSend(Base):
     __tablename__ = 'messages_to_send'
     __table_args__ = {'schema': 'dbo'}
 
-    group_id = Column(Integer, primary_key=True)
-    message_body = Column(String, primary_key=True)
+    message_id = Column(Integer, primary_key=True, autoincrement=True)
+    group_id = Column(Integer)
+    message_body = Column(String)
 
     def __init__(self, group_id, message_body):
         self.group_id = group_id

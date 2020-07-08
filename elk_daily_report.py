@@ -13,20 +13,21 @@ def get_messages():
                 SELECT g.group_id, c.customer_nickname, m.customer_id
                 FROM dbo.groups g
                         INNER JOIN
-                            (SELECT group_id, 
+                            (SELECT group_id,
+                                    customer_id, 
                                     first_name, 
                                     last_name, 
                                     customer_nickname 
-                             FROM customers) c
+                             FROM dbo.customers) c
                                 ON g.group_id = c.group_id
                         LEFT JOIN
                             (SELECT DISTINCT customer_id,
-                                    group_id
-                             FROM dbo.messages) m
+                                    group_id, dttm
+                             FROM dbo.messages
+                             WHERE date(dttm) = CURRENT_DATE) m
                                 ON c.customer_id = m.customer_id
                                     AND g.group_id = m.group_id    
-                WHERE g.active_flag IS True
-                        AND m.dttm = CURRENT_DATE();
+                WHERE g.active_flag IS True;
             """
         )
         return cursor.fetchall()
@@ -51,10 +52,10 @@ def divide_good_and_bad(messages):
 
 def make_messages(divided):
     message_template = 'Hi, Everyone!\n' \
-                       'This is the daily message statistics:' \
-                       'Good Boys:' \
-                       '{}' \
-                       'Bad Boys:' \
+                       'This is the daily message statistics:\n' \
+                       'Good Boys:\n' \
+                       '{}\n' \
+                       'Bad Boys:\n' \
                        '{}'
     messages_to_send = dict()
     for group, persons in divided.items():

@@ -38,8 +38,8 @@ class DataBaseHandler:
     def set_customer(self, message):
         session = self.sesh()
         try:
-            customer = Customers(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                                 message.from_user.username)
+            customer = Customers(message.from_user.id, message.chat.id, message.from_user.first_name,
+                                 message.from_user.last_name, message.from_user.username)
             session.add(customer)
             session.commit()
             return 1
@@ -72,3 +72,19 @@ class DataBaseHandler:
             session.commit()
         finally:
             session.close()
+
+    def get_messages_to_send(self):
+        session = self.sesh()
+        try:
+            return session.query(MessagesToSend).all()
+        finally:
+            session.close()
+
+    def delete_message_to_send(self, message_id):
+        session = self.sesh()
+        try:
+            session.query(MessagesToSend).filter(MessagesToSend.message_id == message_id).delete()
+            session.commit()
+        finally:
+            session.close()
+

@@ -1,5 +1,8 @@
-from elk_bot_db_handler import DataBaseHandler
+import schedule
+import time
 import psycopg2
+from elk_bot_db_handler import DataBaseHandler
+
 
 db_handler = DataBaseHandler()
 pg_conn = psycopg2.connect("dbname='elk_academy' user='postgres' host='192.168.1.31' password='2wsxCDE#'")
@@ -78,4 +81,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    schedule.every().day.at("21:00").do(main)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+

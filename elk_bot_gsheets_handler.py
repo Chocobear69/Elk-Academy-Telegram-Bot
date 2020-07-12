@@ -1,5 +1,6 @@
 from config import config
 
+from collections import namedtuple
 from datetime import datetime
 import pygsheets
 
@@ -18,11 +19,14 @@ class GoogleSheetsHandler:
 
     def get_prepared_messages(self):
         now = datetime.now()
+        fake_date = datetime(1970, 1, 1, 0, 0)
+        message = namedtuple('Message', ['message_text', 'group_id'])
         records = self.events_sheet.get_all_records()
         suitable_records = dict()
         for index, record in enumerate(records):
-            if datetime.strptime(record.get('message_datetime', '01/01/1970 00:00'), config.datetime_format) <= now:
-                suitable_records[index + 2] = record['message_text']
+            dttm = datetime.strptime(record.get('message_datetime', '01/01/1970 00:00'), config.datetime_format)
+            if dttm != fake_date and dttm <= now:
+                suitable_records[index + 2] = message(record['message_text'], record['group_name'])
         return suitable_records
 
     def get_groups(self):

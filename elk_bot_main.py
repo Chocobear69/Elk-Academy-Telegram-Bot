@@ -52,7 +52,8 @@ def set_customer(message):
 
 @bot.message_handler(commands=['id'])
 def send_id(message):
-    bot.reply_to(message, 'Your id is: ' + str(message.from_user.id))
+    if message.from_user.id not in admins:
+        bot.reply_to(message, 'Your id is: ' + str(message.from_user.id))
 
 
 @bot.message_handler(commands=['add_admin'])
@@ -88,6 +89,13 @@ def del_group_by_id(message, user_id, group_id):
             bot.reply_to(message, 'Try one more time, I believe in you!')
 
 
+@bot.message_handler(commands=['check'])
+def check_messages(message):
+    if message.from_user.id in config.sup_user_id and message.chat.id in groups:
+        check_messages_to_send()
+        bot.reply_to(message, 'Never do it again, i told you!')
+
+
 @bot.message_handler(func=lambda msg: msg.from_user.id not in admins and msg.chat.id in groups)
 def count_messages(message):
     if message.content_type == 'text':
@@ -112,10 +120,21 @@ def check_messages_to_send():
             logger.log('Error while daily report:' + str(e))
 
 
+def send_messages():
+    messages = gsheets.get_prepared_messages()
+    for index, message in messages.items():
+        try:
+            bot.send_message(message.group_id, message.message_text)
+            gsheets.delete_event(index)
+        except Exception as e:
+            logger.log('Error while sanding event in {}:{}'.format(message['group_tag'], str(e)))
+
+
 def main():
     scheduler.start()
     scheduler.add_job(func=update_admins_groups, trigger='interval', minutes=config.scheduler_interval_min)
-    scheduler.add_job(func=check_messages_to_send, trigger='cron', hour='21', minute='34')
+    scheduler.add_job(func=send_messages, trigger='interval', minutes=config.scheduler_interval_min)
+    scheduler.add_job(func=check_messages_to_send, trigger='cron', hour='22', minute='00')
 
     while True:
         try:

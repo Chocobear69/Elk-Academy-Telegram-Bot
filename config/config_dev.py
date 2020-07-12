@@ -1,4 +1,4 @@
-token = '883751338:AAEFIPpzP4F-awZDO6-8K9uHhq97XlXWx5U'
+token = ''
 
 """sheets.google connection"""
 sheet_name = 'elk-academy-shedule'
@@ -31,4 +31,4 @@ first_message = 'Hi!\n' \
 
 
 """Super User"""
-sup_user_id = []
+sup_user_id = [391416028]

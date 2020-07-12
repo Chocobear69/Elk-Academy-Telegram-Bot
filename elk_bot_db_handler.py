@@ -51,7 +51,7 @@ class DataBaseHandler:
     def delete_group(self, message):
         session = self.sesh()
         try:
-            Groups.query.filter(Groups.group_id == message).delete()
+            session.query(Groups).filter(Groups.group_id == message).delete()
             session.commit()
         finally:
             session.close()

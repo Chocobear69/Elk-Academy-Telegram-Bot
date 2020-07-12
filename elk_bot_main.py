@@ -52,8 +52,7 @@ def set_customer(message):
 
 @bot.message_handler(commands=['id'])
 def send_id(message):
-    if message.from_user.id not in admins:
-        bot.reply_to(message, 'Your id is: ' + str(message.from_user.id))
+    bot.reply_to(message, 'Your id is: ' + str(message.from_user.id))
 
 
 @bot.message_handler(commands=['add_admin'])

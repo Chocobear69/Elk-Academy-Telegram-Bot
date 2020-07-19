@@ -63,10 +63,26 @@ class MessagesToSend(Base):
     message_id = Column(Integer, primary_key=True, autoincrement=True)
     group_id = Column(Integer)
     message_body = Column(String)
+    is_valid = Column(Boolean)
+    message_datetime = Column(DateTime, nullable=True)
 
-    def __init__(self, group_id, message_body):
+    def __init__(self, group_id, message_body, message_datetime, is_valid=True):
         self.group_id = group_id
         self.message_body = message_body
+        self.message_datetime = message_datetime
+        self.is_valid = is_valid
+
+
+class Admins(Base):
+    __tablename__ = 'admins'
+    __table_args__ = {'schema': 'dbo'}
+
+    admin_id = Column(Integer, primary_key=True, autoincrement=True)
+    admin_name = Column(String)
+
+    def __init__(self, admin_id, admin_name):
+        self.admin_id = admin_id
+        self.admin_name = admin_name
 
 
 if __name__ == '__main__':

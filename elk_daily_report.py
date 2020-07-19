@@ -56,9 +56,9 @@ def divide_good_and_bad(messages):
 def make_messages(divided):
     message_template = 'Hi, Everyone!\n' \
                        'This is the daily message statistics:\n' \
-                       'Good Boys:\n' \
+                       '**Good Boys:**\n' \
                        '{}\n' \
-                       'Bad Boys:\n' \
+                       '**Bad Boys:**\n' \
                        '{}'
     messages_to_send = dict()
     for group, persons in divided.items():

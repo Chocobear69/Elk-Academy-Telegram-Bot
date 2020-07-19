@@ -9,12 +9,11 @@ from logger import get_simple_logger
 
 scheduler = BackgroundScheduler()
 db_handler = DataBaseHandler()
-gsheets = GoogleSheetsHandler()
 logger = get_simple_logger('elk_bot')
 bot = telebot.TeleBot(config.token)
 ######################################################################################
-admins = gsheets.get_admins()
-groups = gsheets.get_groups()
+admins = db_handler.get_admins()
+groups = db_handler.get_groups()
 ######################################################################################
 
 
@@ -30,7 +29,6 @@ def init(message):
 def add_group(message, user_id, chat_id):
     if message.chat.id == chat_id and message.from_user.id == user_id and message.content_type == 'text':
         try:
-            gsheets.set_group(message.text, message.chat.id)
             db_handler.set_group(message)
             bot.reply_to(message, 'Done')
         except Exception as e:
@@ -52,21 +50,22 @@ def set_customer(message):
 
 @bot.message_handler(commands=['id'])
 def send_id(message):
-    bot.reply_to(message, 'Your id is: ' + str(message.from_user.id))
+    bot.reply_to(message, 'Chat id is: ' + str(message.chat.id))
 
 
 @bot.message_handler(commands=['add_admin'])
 def set_admin(message):
     if message.from_user.id in config.sup_user_id and message.chat.id > 0:
         markup = types.ForceReply(selective=False)
-        msg = bot.send_message(message.chat.id, 'New admin id plz?', reply_markup=markup)
+        msg = bot.send_message(message.chat.id, 'Enter name and id separated by comma\nExmpl:Admin,391416028',
+                               reply_markup=markup)
         bot.register_for_reply(msg, set_admin_by_id, user_id=message.from_user.id)
 
 
 def set_admin_by_id(message, user_id):
     if message.from_user.id == user_id and message.content_type == 'text':
-        adm_id, name = message.text.split(',')
-        gsheets.set_admin(name, adm_id)
+        name, admin_id = message.text.split(',')
+        db_handler.set_admin(name, admin_id)
 
 
 @bot.message_handler(['remove'])
@@ -105,8 +104,8 @@ def count_messages(message):
 def update_admins_groups():
     global admins
     global groups
-    groups = gsheets.get_groups()
-    admins = gsheets.get_admins()
+    groups = db_handler.get_groups()
+    admins = db_handler.get_admins()
 
 
 def check_messages_to_send():
@@ -119,21 +118,10 @@ def check_messages_to_send():
             logger.log('Error while daily report:' + str(e))
 
 
-def send_messages():
-    messages = gsheets.get_prepared_messages()
-    for index, message in messages.items():
-        try:
-            bot.send_message(message.group_id, message.message_text)
-            gsheets.delete_event(index)
-        except Exception as e:
-            logger.log('Error while sanding event in {}:{}'.format(message['group_tag'], str(e)))
-
-
 def main():
     scheduler.start()
     scheduler.add_job(func=update_admins_groups, trigger='interval', minutes=config.scheduler_interval_min)
-    scheduler.add_job(func=send_messages, trigger='interval', minutes=config.scheduler_interval_min)
-    scheduler.add_job(func=check_messages_to_send, trigger='cron', hour='22', minute='00')
+    scheduler.add_job(func=check_messages_to_send, trigger='interval', minutes=config.scheduler_interval_min + 1)
 
     while True:
         try:

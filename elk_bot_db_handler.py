@@ -1,5 +1,6 @@
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 
 from elk_bot_db_manager import *
 from config import config
@@ -64,10 +65,10 @@ class DataBaseHandler:
         finally:
             session.close()
 
-    def set_message_to_send(self, group_id, message):
+    def set_message_to_send(self, group_id, message_body, message_datetime, is_valid):
         session = self.sesh()
         try:
-            message = MessagesToSend(group_id, message)
+            message = MessagesToSend(group_id, message_body, message_datetime, is_valid)
             session.add(message)
             session.commit()
         finally:
@@ -76,7 +77,8 @@ class DataBaseHandler:
     def get_messages_to_send(self):
         session = self.sesh()
         try:
-            return session.query(MessagesToSend).all()
+            now = datetime.now()
+            return [i for i in session.query(MessagesToSend).all() if i.message_datetime <= now and i.is_valid is True]
         finally:
             session.close()
 
@@ -87,4 +89,35 @@ class DataBaseHandler:
             session.commit()
         finally:
             session.close()
+
+    def get_groups(self):
+        session = self.sesh()
+        try:
+            return {i.group_id: i.group_tag for i in session.query(Groups).all() if i.active_flag is True}
+        finally:
+            session.close()
+
+    def get_admins(self):
+        session = self.sesh()
+        try:
+            return {i.admin_id: i.admin_name for i in session.query(Admins).all()}
+        finally:
+            session.close()
+
+    def set_admin(self, admin_name, admin_id):
+        session = self.sesh()
+        try:
+            admin = Admins(admin_id, admin_name)
+            session.add(admin)
+            session.commit()
+        finally:
+            session.close()
+
+
+if __name__ == '__main__':
+    db = DataBaseHandler()
+    gr = db.get_messages_to_send()
+    print(gr)
+
+
 

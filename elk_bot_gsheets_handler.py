@@ -35,6 +35,9 @@ class GoogleSheetsHandler:
     def get_admins(self):
         return {record['admin_id']: record['admin_name'] for record in self.admins_sheet.get_all_records()}
 
+    def get_events(self):
+        return self.events_sheet.get_all_records()
+
     def set_group(self, group_tag, group_id):
         chats_amount = len(self.get_groups())
         self.groups_sheet.append_table([group_tag, group_id], start='A' + str(chats_amount) if chats_amount else 'A2')
@@ -43,6 +46,11 @@ class GoogleSheetsHandler:
         chats_amount = len(self.get_admins())
         self.groups_sheet.append_table([admin_name, admin_id], start='A' + str(chats_amount) if chats_amount else 'A2')
 
+    def clear_events(self):
+        self.events_sheet.clear(start='A2')
+
 
 if __name__ == '__main__':
     gsh_handler = GoogleSheetsHandler()
+    a = gsh_handler.get_events()
+

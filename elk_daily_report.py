@@ -1,5 +1,6 @@
 import schedule
 import time
+from datetime import datetime
 import psycopg2
 from elk_bot_db_handler import DataBaseHandler
 
@@ -49,7 +50,7 @@ def divide_good_and_bad(messages):
         if message[2]:
             messages_to_send[message[0]]['good_boys'].append(message[1])
         else:
-            messages_to_send[message[0]]['bad_boys'].append(message[1])
+            messages_to_send[message[0]]['bad_boys'].append('@' + str(message[1]))
     return messages_to_send
 
 
@@ -70,7 +71,7 @@ def make_messages(divided):
 
 def send_messages(messages):
     for group, message in messages.items():
-        db_handler.set_message_to_send(group, message)
+        db_handler.set_message_to_send(group, message, datetime(1970, 1, 1, 0, 0, 0), True)
 
 
 def main():
@@ -85,4 +86,3 @@ if __name__ == '__main__':
     while True:
         schedule.run_pending()
         time.sleep(1)
-

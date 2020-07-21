@@ -1,5 +1,6 @@
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import func
 
 from datetime import datetime
 from config import config
@@ -16,7 +17,7 @@ class Messages(Base):
     customer_id = Column(Integer)
     group_id = Column(Integer)
     body = Column(String)
-    dttm = Column(DateTime, default=datetime.now())
+    dttm = Column(DateTime, default=func.now())
 
     def __init__(self, customer_id, group_id, body):
         self.customer_id = customer_id

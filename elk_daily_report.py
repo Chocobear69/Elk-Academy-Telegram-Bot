@@ -48,7 +48,7 @@ def divide_good_and_bad(messages):
                 'bad_boys': [],
             }
         if message[2]:
-            messages_to_send[message[0]]['good_boys'].append(message[1])
+            messages_to_send[message[0]]['good_boys'].append('@' + str(message[1]))
         else:
             messages_to_send[message[0]]['bad_boys'].append('@' + str(message[1]))
     return messages_to_send
@@ -57,9 +57,9 @@ def divide_good_and_bad(messages):
 def make_messages(divided):
     message_template = 'Hi, Everyone!\n' \
                        'This is the daily message statistics:\n' \
-                       '**Good Boys:**\n' \
+                       'Good Boys:\n' \
                        '{}\n' \
-                       '**Bad Boys:**\n' \
+                       'Bad Boys:\n' \
                        '{}'
     messages_to_send = dict()
     for group, persons in divided.items():
@@ -82,7 +82,7 @@ def main():
 
 
 if __name__ == '__main__':
-    schedule.every().day.at("21:00").do(main)
+    schedule.every().day.at("23:00").do(main)
     while True:
         schedule.run_pending()
         time.sleep(1)

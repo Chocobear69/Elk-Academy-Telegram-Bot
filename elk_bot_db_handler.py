@@ -78,7 +78,8 @@ class DataBaseHandler:
         session = self.sesh()
         try:
             now = datetime.now()
-            return [i for i in session.query(MessagesToSend).all() if i.message_datetime <= now and i.is_valid is True]
+            return session.query(MessagesToSend).filter(MessagesToSend.is_valid == True,
+                                                        MessagesToSend.message_datetime <= now)
         finally:
             session.close()
 

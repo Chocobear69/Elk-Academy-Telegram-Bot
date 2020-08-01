@@ -5,11 +5,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from elk_bot_gsheets_handler import *
 from elk_bot_db_handler import DataBaseHandler
-from logger import get_simple_logger
+import logger
 
 scheduler = BackgroundScheduler()
 db_handler = DataBaseHandler()
-logger = get_simple_logger('elk_bot')
 bot = telebot.TeleBot(config.token)
 ######################################################################################
 admins = db_handler.get_admins()
@@ -33,7 +32,7 @@ def add_group(message, user_id, chat_id):
             bot.reply_to(message, 'Done')
         except Exception as e:
             bot.reply_to(message, 'Something goes wrong(')
-            logger.warning('While adding group next Exception occur: \n' + str(e))
+            logger.get_logger().error('While adding group next Exception occur: \n' + str(e))
 
 
 @bot.message_handler(commands=['hello'])
@@ -44,8 +43,6 @@ def set_customer(message):
             bot.reply_to(message, 'Hello, darling!')
         else:
             bot.reply_to(message, 'I know who you are)')
-    else:
-        bot.reply_to(message, 'I know who you are)')
 
 
 @bot.message_handler(commands=['id'])
@@ -81,17 +78,12 @@ def del_group_by_id(message, user_id, group_id):
         lower_text = message.text.lower()
         if lower_text.startswith('y'):
             db_handler.delete_group(message.chat.id)
-        if lower_text.startswith('n'):
+            bot.reply_to(message, 'Bye ;)')
+            bot.leave_chat(message.chat.id)
+        elif lower_text.startswith('n'):
             bot.reply_to(message, 'OK!')
         else:
             bot.reply_to(message, 'Try one more time, I believe in you!')
-
-
-@bot.message_handler(commands=['check'])
-def check_messages(message):
-    if message.from_user.id in config.sup_user_id and message.chat.id in groups:
-        check_messages_to_send()
-        bot.reply_to(message, 'Never do it again, i told you!')
 
 
 @bot.message_handler(func=lambda msg: msg.from_user.id not in admins and msg.chat.id in groups)
@@ -115,7 +107,7 @@ def check_messages_to_send():
             bot.send_message(i.group_id, i.message_body)
             db_handler.delete_message_to_send(i.message_id)
         except Exception as e:
-            logger.log('Error while daily report:' + str(e))
+            logger.get_logger().error(str(e))
 
 
 def main():
@@ -129,7 +121,7 @@ def main():
             break
         except Exception as e:
             bot.stop_polling()
-            logger.warning('ELK-BOT-POLLING:\n' + str(e))
+            logger.get_logger().error(str(e))
 
 
 if __name__ == '__main__':
